@@ -29,22 +29,20 @@ async def get_db() -> Generator:
         await session.close()
 
 
-# r = redis.StrictRedis(host="localhost", port=6379, db=0, decode_responses=True)
+redis_client = redis.StrictRedis(host="localhost", port=6379, db=0, decode_responses=True)
 
+async def get_session(request: Request, response: Response) -> uuid.UUID:
+    session_id = request.cookies.get(settings.SESSION_COOKIE)
 
-# async def get_session(request: Request, response: Response) -> uuid.UUID:
-#     session_id = request.cookies.get(settings.SESSION_COOKIE)
-
-#     if not session_id:
-#         session_id = str(uuid.uuid4())
-#         await r.hset(session_id, mapping={})
-#         await r.expire(session_id, settings.SESSION_EXPIRE)
-#         response.set_cookie(
-#             key=settings.SESSION_COOKIE,
-#             value=session_id,
-#             httponly=True,
-#             samesite="lax"
-#         )
-#     return session_id
+    if not session_id:
+        session_id = str(uuid.uuid4())
+        await redis_client.set(session_id, "active")
+        response.set_cookie(
+            key=settings.SESSION_COOKIE,
+            value=session_id,
+            httponly=True,
+            samesite="lax"
+        )
+    return session_id
 
 

@@ -4,19 +4,18 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.models import PackageCreate, CreatePackageResponse, ShowPackage, TypePackage
+from api.models import PackageCreate, CreatePackageResponse, ShowPackage, TypePackage, ShowParcels
 from db.dals import PackageDAL
-from db.session import get_db
+from db.session import get_db, redis_client, get_session
 
 package_router = APIRouter()
+parcels_router = APIRouter()
 types_router = APIRouter()
 
 
-async def _create_new_package(body: PackageCreate, db) -> CreatePackageResponse:
+async def _create_new_package(body: PackageCreate, db, session_id) -> CreatePackageResponse:
     async with db as session:
         async with session.begin():
-            # Здесь мы должны присвоить id посылки к 
-            # определенной сесии пользователя
 
             package_dal = PackageDAL(session)
             package_id = await package_dal.create_package(
@@ -25,6 +24,10 @@ async def _create_new_package(body: PackageCreate, db) -> CreatePackageResponse:
                 type_package=body.type_package,
                 price=body.price,
             )
+            
+            key = f"session:{session_id}:parcels"
+            await redis_client.sadd(key, str(package_id))
+            
             return CreatePackageResponse(
                 package_id=package_id,
             )
@@ -51,11 +54,12 @@ async def _create_new_package(body: PackageCreate, db) -> CreatePackageResponse:
 #             return updated_user_id
 
 
-async def _get_package_by_id(package_id, db) -> Union[ShowPackage, None]:
+async def _get_package_by_id(package_id, db, session_id) -> Union[ShowPackage, None]:
     async with db as session:
         async with session.begin():
-            # Здесь мы должны проверять на то, что id посылки 
-            # принадлежит сессии пользователя
+            key = f"session:{session_id}:parcels"
+            if not await redis_client.sismember(key, str(package_id)):
+                return
             
             package_dal = PackageDAL(session)
             package = await package_dal.get_package_by_id(
@@ -75,26 +79,19 @@ async def _get_package_by_id(package_id, db) -> Union[ShowPackage, None]:
                 )
                 
                 
-# async def _get_parcels_by_session_id(session_id, db) -> Union[List[ShowPackage], None]:
-#     async with db as session:
-#         async with session.begin():
-#             package_dal = PackageDAL(session)
-#             # Здесь мы должны достать только id посылок
-#             package = await package_dal.get_package_by_id(
-#                 package_id=package_id,
-#             )
-#             type_package = await package_dal.get_type_package_by_id(
-#                 type_id=package.type_package,
-#             )
-#             if package is not None:
-#                 return ShowPackage(
-#                     package_id=package.package_id,
-#                     name=package.name,
-#                     weight=package.weight,
-#                     type_package=type_package.name,
-#                     price=package.price,
-#                     price_delivery="Не рассчитано",
-#                 )
+async def _get_parcels_by_session_id(db, session_id) -> Union[List[ShowPackage], None]:
+    async with db as session:
+        async with session.begin():
+            package_dal = PackageDAL(session)
+            
+            key = f"session:{session_id}:parcels"
+            parcels_id_set = await redis_client.smembers(key)
+            
+            parcels = await package_dal.get_parcels_by_ids(
+                parcels_id_set=parcels_id_set,
+            )
+            if parcels is not None:
+                return parcels
 
 
 async def _get_types_package(db) -> Union[List[TypePackage], None]:
@@ -107,8 +104,8 @@ async def _get_types_package(db) -> Union[List[TypePackage], None]:
 
 
 @package_router.post("/", response_model=CreatePackageResponse)
-async def create_package(body: PackageCreate, db: AsyncSession = Depends(get_db)) -> CreatePackageResponse:
-    return await _create_new_package(body, db)
+async def create_package(body: PackageCreate, db: AsyncSession = Depends(get_db), session_id = Depends(get_session)) -> CreatePackageResponse:
+    return await _create_new_package(body, db, session_id)
 
 
 # @package_router.delete("/", response_model=DeleteUserResponse)
@@ -120,10 +117,17 @@ async def create_package(body: PackageCreate, db: AsyncSession = Depends(get_db)
 
 
 @package_router.get("/", response_model=ShowPackage)
-async def get_package_by_id(package_id: UUID, db: AsyncSession = Depends(get_db)) -> ShowPackage:
-    package = await _get_package_by_id(package_id, db)
+async def get_package_by_id(package_id: UUID, db: AsyncSession = Depends(get_db), session_id = Depends(get_session)) -> ShowPackage:
+    package = await _get_package_by_id(package_id, db, session_id)
     if package is None:
-        raise HTTPException(status_code=404, detail=f"Package with id = {package_id} not found.")
+        raise HTTPException(status_code=404, detail=f"Package with id = {package_id} not found or this is not your package")
+    return package
+
+@parcels_router.get("/", response_model=list[ShowParcels])
+async def get_parcels_by_session_id(db: AsyncSession = Depends(get_db), session_id = Depends(get_session)) -> ShowPackage:
+    package = await _get_parcels_by_session_id(db, session_id)
+    if package is None:
+        raise HTTPException(status_code=404, detail="This is not your session id")
     return package
 
 

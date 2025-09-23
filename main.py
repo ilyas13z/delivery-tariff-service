@@ -2,7 +2,7 @@ from fastapi import FastAPI
 import uvicorn
 from fastapi.routing import APIRouter
 
-from api.handlers import package_router, types_router
+from api.handlers import package_router, parcels_router, types_router
 
 #########################
 # BLOCK WITH API ROUTES #
@@ -16,6 +16,9 @@ main_api_router = APIRouter()
 
 # set routes to the app instance
 main_api_router.include_router(package_router, prefix="/package", tags=["package"])
+app.include_router(main_api_router)
+
+main_api_router.include_router(parcels_router, prefix="/packages", tags=["package"])
 app.include_router(main_api_router)
 
 main_api_router.include_router(types_router, prefix="/types", tags=["types"])

@@ -36,3 +36,4 @@ class Parcels(Base):
     weight = Column(Float, nullable=False)
     type_package = Column(Integer, ForeignKey('types_package.type_id'), nullable=False)
     price = Column(Float, nullable=False)
+    price_delivery = Column(Float, nullable=True)

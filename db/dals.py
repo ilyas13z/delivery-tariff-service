@@ -1,4 +1,4 @@
-from typing import Union, List
+from typing import Union, List, Set
 from uuid import UUID
 
 from sqlalchemy import update, and_, select
@@ -51,6 +51,13 @@ class PackageDAL:
         types = res.scalars().all()
         if types is not None:
             return types
+        
+    async def get_parcels_by_ids(self, parcels_id_set: Set[UUID]) -> Union[List[Parcels], None]:
+        query = select(Parcels).where(Parcels.package_id.in_(parcels_id_set))
+        res = await self.db_session.execute(query)
+        parcels = res.scalars().all()
+        if parcels is not None:
+            return parcels
 
     async def get_package_by_id(self, package_id: UUID) -> Union[Parcels, None]:
         query = select(Parcels).where(Parcels.package_id == package_id)

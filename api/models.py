@@ -21,6 +21,14 @@ class ShowPackage(TunedModel):
     type_package: str
     price: float
     price_delivery: float | str
+
+
+class ShowParcels(TunedModel):
+    package_id: uuid.UUID
+    name: str
+    weight: float
+    type_package: int
+    price: float
     
 
 class TypePackage(TunedModel):
