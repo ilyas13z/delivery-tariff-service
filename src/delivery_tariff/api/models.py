@@ -1,10 +1,6 @@
 import uuid
 
-from pydantic import BaseModel
-
-#########################
-# BLOCK WITH API MODELS #
-#########################
+from pydantic import BaseModel, field_serializer
 
 
 class TunedModel(BaseModel):
@@ -20,15 +16,13 @@ class ShowPackage(TunedModel):
     weight: float
     type_package: str
     price: float
-    price_delivery: float | str
-
-
-class ShowParcels(TunedModel):
-    package_id: uuid.UUID
-    name: str
-    weight: float
-    type_package: int
-    price: float
+    price_delivery: float | None
+    
+    @field_serializer("price_delivery")
+    def serialize_price_delivery(self, value):
+        if value is None:
+            return "Не рассчитано"
+        return value
     
 
 class TypePackage(TunedModel):
@@ -42,5 +36,5 @@ class CreatePackageResponse(TunedModel):
 class PackageCreate(BaseModel):
     name: str
     weight: float
-    type_package: int
+    type_id: int
     price: float

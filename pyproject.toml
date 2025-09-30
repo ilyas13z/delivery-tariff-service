@@ -1,7 +1,13 @@
 [project]
 name = "delivery-tariff-service"
 version = "0.1.0"
-description = ""
+package-mode = false
+
+packages = [
+    { include = "delivery_tariff", from = "src" }
+]
+
+description = "Service for calculating delivery costs"
 authors = [
     {name = "ilyas13z",email = "ilyas13z@yandex.ru"}
 ]
@@ -16,7 +22,8 @@ dependencies = [
     "asyncpg (>=0.30.0,<0.31.0)",
     "pydantic-settings (>=2.10.1,<3.0.0)",
     "certifi (>=2025.8.3,<2026.0.0)",
-    "redis (>=6.4.0,<7.0.0)"
+    "redis (>=6.4.0,<7.0.0)",
+    "celery (>=5.5.3,<6.0.0)"
 ]
 
 [build-system]
