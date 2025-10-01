@@ -9,7 +9,7 @@ repos:
 
   # Mypy - статическая типизация
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.11.2
+    rev: v1.18.2
     hooks:
       - id: mypy
         additional_dependencies:
@@ -20,7 +20,7 @@ repos:
 
   # Проверка на лишние пробелы и порядок файлов
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v6.0.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer

@@ -157,6 +157,7 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+.mypy_cache
 .dmypy.json
 dmypy.json
 
@@ -191,6 +192,8 @@ cython_debug/
 
 # Ruff stuff:
 .ruff_cache/
+
+#Mypu
 
 # PyPI configuration file
 .pypirc
