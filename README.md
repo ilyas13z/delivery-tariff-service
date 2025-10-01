@@ -1,4 +1,6 @@
-# Delivery Tariff Service
+# Shipinkos
+
+Shipinkos — это онлайн-сервис, который автоматически рассчитывает стоимость доставки посылок.
 
 Микросервис для Службы международной доставки. Сервис получает данные о посылках и автоматически рассчитывает стоимость доставки в зависимости от веса, цены товара и актуального курса доллара к рублю.
 
@@ -142,7 +144,11 @@ alembic init migrations
 1. В файле `alembic.ini` укажите адрес вашей базы данных:
 
 ```ini
-sqlalchemy.url = postgresql://user:password@localhost/dbname
+sqlalchemy.url = postgresql://postgres:postgres@localhost:5432/delivery_tariff_db
+```
+Если используете docker:
+```ini
+sqlalchemy.url = postgresql://postgres:postgres@postgres:5432/delivery_tariff_db
 ```
 
 2. В файле `migrations/env.py` импортируйте ваши модели:
@@ -169,12 +175,12 @@ alembic upgrade heads
 ## Запуск сервиса
 
 ```bash
-PYTHONPATH=src poetry run python -m delivery_tariff.main
+make run
 ```
 
-Или через Make
+Или через `Poetry`
 ```bash
-make run
+PYTHONPATH=src poetry run python -m delivery_tariff.main
 ```
 
 ## Примеры использования
@@ -187,7 +193,7 @@ curl -X 'POST' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -d '{
-  "name": "string",
+  "name": "Package name",
   "weight": 0,
   "type_id": 1,
   "price": 0

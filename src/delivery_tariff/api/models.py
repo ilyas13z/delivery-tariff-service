@@ -17,17 +17,18 @@ class ShowPackage(TunedModel):
     type_package: str
     price: float
     price_delivery: float | None
-    
+
     @field_serializer("price_delivery")
     def serialize_price_delivery(self, value):
         if value is None:
             return "Не рассчитано"
         return value
-    
+
 
 class TypePackage(TunedModel):
     type_id: int
     name: str
+
 
 class CreatePackageResponse(TunedModel):
     package_id: uuid.UUID

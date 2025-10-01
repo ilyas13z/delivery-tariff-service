@@ -1,0 +1,63 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: delivery_tariff_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+
+  api:
+    build: .
+    command: sh -c ./entrypoint.sh
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/delivery_tariff_db
+      - BROKER_CELERY_URL=redis://redis:6379/1
+      - BACKEND_CELERY_URL=redis://redis:6379/1
+      - SESSION_COOKIE=session_id
+      - REDIS_DATABASE_HOST=redis
+      - REDIS_DATABASE_PORT=6379
+    depends_on:
+      - postgres
+      - redis
+
+  celery_worker:
+    build: .
+    command: celery -A delivery_tariff.celery_app worker --loglevel=info
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/delivery_tariff_db
+      - BROKER_CELERY_URL=redis://redis:6379/1
+      - BACKEND_CELERY_URL=redis://redis:6379/1
+      - SESSION_COOKIE=session_id
+      - REDIS_DATABASE_HOST=redis
+      - REDIS_DATABASE_PORT=6379
+    depends_on:
+      - postgres
+      - redis
+
+  celery_beat:
+    build: .
+    command: celery -A delivery_tariff.celery_app beat --loglevel=info
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/delivery_tariff_db
+      - BROKER_CELERY_URL=redis://redis:6379/1
+      - BACKEND_CELERY_URL=redis://redis:6379/1
+      - SESSION_COOKIE=session_id
+      - REDIS_DATABASE_HOST=redis
+      - REDIS_DATABASE_PORT=6379
+    depends_on:
+      - postgres
+      - redis
+
+volumes:
+  postgres_data:

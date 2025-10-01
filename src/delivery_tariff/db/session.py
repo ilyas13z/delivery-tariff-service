@@ -1,4 +1,5 @@
-import requests, json
+import requests
+import json
 from typing import Generator
 
 import uuid
@@ -15,7 +16,7 @@ settings = settings.Settings()
 
 sync_engine = create_engine(
     settings.database_url.replace("postgresql+asyncpg", "postgresql+psycopg2"),
-    echo=True
+    echo=True,
 )
 
 # Синхронная сессия
@@ -23,10 +24,14 @@ sync_session = sessionmaker(bind=sync_engine)
 
 
 # create async engine for interaction with database
-async_engine = create_async_engine(settings.database_url, future=True, echo=True)
+async_engine = create_async_engine(
+    settings.database_url, future=True, echo=True
+)
 
 # create session for the interaction with database
-async_session = sessionmaker(async_engine, expire_on_commit=False, class_=AsyncSession)
+async_session = sessionmaker(
+    async_engine, expire_on_commit=False, class_=AsyncSession
+)
 
 
 async def get_async_db() -> Generator:
@@ -38,9 +43,20 @@ async def get_async_db() -> Generator:
         await session.close()
 
 
-redis_client = redis_async.StrictRedis(host=settings.redis_database_host, port=settings.redis_database_port, db=0, decode_responses=True)
+redis_client = redis_async.StrictRedis(
+    host=settings.redis_database_host,
+    port=settings.redis_database_port,
+    db=0,
+    decode_responses=True,
+)
 
-redis_client_for_currency = redis_sync.StrictRedis(host=settings.redis_database_host, port=settings.redis_database_port, db=1, decode_responses=True)
+redis_client_for_currency = redis_sync.StrictRedis(
+    host=settings.redis_database_host,
+    port=settings.redis_database_port,
+    db=1,
+    decode_responses=True,
+)
+
 
 async def get_session(request: Request, response: Response) -> uuid.UUID:
     session_id = request.cookies.get(settings.session_cookie)
@@ -52,17 +68,22 @@ async def get_session(request: Request, response: Response) -> uuid.UUID:
             key=settings.session_cookie,
             value=session_id,
             httponly=True,
-            samesite="lax"
+            samesite="lax",
         )
     return session_id
 
 
 def get_exchange_rate(from_currency: str = "USD") -> float:
-    exchange_rate = redis_client_for_currency.get(f"currency:{from_currency}:price_delivery")
-    
-    if not exchange_rate:
-        exchange_rate = json.loads(requests.get("https://www.cbr-xml-daily.ru/daily_json.js").text)['Valute'][from_currency]['Value']
-        
-        redis_client_for_currency.setex(f"currency:{from_currency}:price_delivery", 3600, exchange_rate)
-    return exchange_rate
+    exchange_rate = redis_client_for_currency.get(
+        f"currency:{from_currency}:price_delivery"
+    )
 
+    if not exchange_rate:
+        exchange_rate = json.loads(
+            requests.get("https://www.cbr-xml-daily.ru/daily_json.js").text
+        )["Valute"][from_currency]["Value"]
+
+        redis_client_for_currency.setex(
+            f"currency:{from_currency}:price_delivery", 3600, exchange_rate
+        )
+    return exchange_rate

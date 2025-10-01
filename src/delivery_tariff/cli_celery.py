@@ -1,10 +1,12 @@
 import click
 from delivery_tariff.celery_app import celery_app
 
+
 @click.group()
 def cli():
     """CLI для запуска задач Celery вручную."""
     pass
+
 
 @cli.command("run-task")
 @click.argument("task_name")

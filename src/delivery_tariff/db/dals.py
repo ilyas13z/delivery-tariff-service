@@ -14,6 +14,7 @@ from delivery_tariff.db.models import Parcels, TypesPackage
 
 class PackageDAL:
     """Data Access Layer for operating user info"""
+
     def __init__(self, db_session: AsyncSession):
         self.db_session = db_session
 
@@ -30,16 +31,25 @@ class PackageDAL:
         await self.db_session.flush()
         return new_package.package_id
 
-
     async def get_types_package(self) -> Union[List[TypesPackage], None]:
         query = select(TypesPackage)
         res = await self.db_session.execute(query)
         types = res.scalars().all()
         if types is not None:
             return types
-        
-    async def get_parcels_by_ids(self, page: int, parcels_id_set: Set[UUID], filter_type_id: Optional[int] = None, filter_price_delivery: Optional[bool] = None) -> List[Parcels]:
-        query = select(Parcels).where(Parcels.package_id.in_(parcels_id_set)).options(selectinload(Parcels.type_package))
+
+    async def get_parcels_by_ids(
+        self,
+        page: int,
+        parcels_id_set: Set[UUID],
+        filter_type_id: Optional[int] = None,
+        filter_price_delivery: Optional[bool] = None,
+    ) -> List[Parcels]:
+        query = (
+            select(Parcels)
+            .where(Parcels.package_id.in_(parcels_id_set))
+            .options(selectinload(Parcels.type_package))
+        )
 
         if filter_type_id is not None:
             query = query.filter(Parcels.type_id == filter_type_id)
@@ -57,8 +67,14 @@ class PackageDAL:
         if parcels is not None:
             return parcels
 
-    async def get_package_by_id(self, package_id: UUID) -> Union[Parcels, None]:
-        query = select(Parcels).where(Parcels.package_id == package_id).options(selectinload(Parcels.type_package))
+    async def get_package_by_id(
+        self, package_id: UUID
+    ) -> Union[Parcels, None]:
+        query = (
+            select(Parcels)
+            .where(Parcels.package_id == package_id)
+            .options(selectinload(Parcels.type_package))
+        )
         res = await self.db_session.execute(query)
         package_row = res.fetchone()
         if package_row is not None:
@@ -68,7 +84,7 @@ class PackageDAL:
 class PackageDALSync:
     def __init__(self, db_session):
         self.db_session = db_session
-        
+
     def update_price_delivery(self, exchange_rate: float) -> List[Parcels]:
         query = select(Parcels).filter(Parcels.price_delivery.is_(None))
         res = self.db_session.execute(query)
@@ -76,7 +92,9 @@ class PackageDALSync:
         if parcels is not None:
             for package in parcels:
                 # Стоимость = (вес в кг * 0.5 + стоимость содержимого в долларах * 0.01 ) * курс доллара к рублю
-                price_delivery = (package.weight * 0.5 + package.price * 0.01) * float(exchange_rate)
+                price_delivery = (
+                    package.weight * 0.5 + package.price * 0.01
+                ) * float(exchange_rate)
                 package.price_delivery = round(price_delivery, 2)
 
             return parcels
