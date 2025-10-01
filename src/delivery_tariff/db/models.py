@@ -2,23 +2,11 @@ import uuid
 
 from sqlalchemy import Column, String, Integer, ForeignKey, Float
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import declarative_base, relationship
-
-##############################
-# BLOCK WITH DATABASE MODELS #
-##############################
-
-Base = declarative_base()
+from sqlalchemy.orm import DeclarativeBase, relationship
 
 
-# class User(Base):
-#     __tablename__ = "users"
-
-#     user_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-#     name = Column(String, nullable=False)
-#     surname = Column(String, nullable=False)
-#     email = Column(String, nullable=False, unique=True)
-#     is_active = Column(Boolean(), default=True)
+class Base(DeclarativeBase):
+    pass
 
 
 class TypesPackage(Base):

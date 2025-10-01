@@ -1,8 +1,10 @@
 from pydantic_settings import BaseSettings
 
 
-# Базовый пример настроек
 class Settings(BaseSettings):
+    host: str
+    port: int
+
     database_url: str
     database_host: str
     database_port: int
@@ -25,4 +27,4 @@ class Settings(BaseSettings):
 
         case_sensitive = False
 
-        extra = "ignore"  # или "allow", "ignore"
+        extra = "ignore"

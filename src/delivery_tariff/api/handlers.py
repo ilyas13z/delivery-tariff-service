@@ -47,7 +47,7 @@ async def _get_package_by_id(
         async with session.begin():
             key = f"session:{session_id}:parcels"
             if not await redis_client.sismember(key, str(package_id)):
-                return
+                return None
 
             package_dal = PackageDAL(session)
             package = await package_dal.get_package_by_id(
@@ -62,6 +62,7 @@ async def _get_package_by_id(
                     price=package.price,
                     price_delivery=package.price_delivery,
                 )
+            return None
 
 
 async def _get_parcels_by_session_id(
@@ -101,8 +102,7 @@ async def _get_types_package(db) -> Union[List[TypePackage], None]:
         async with session.begin():
             package_dal = PackageDAL(session)
             types = await package_dal.get_types_package()
-            if types is not None:
-                return types
+            return types
 
 
 @package_router.post("/", response_model=CreatePackageResponse)

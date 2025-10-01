@@ -7,10 +7,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from delivery_tariff.db.models import Parcels, TypesPackage
 
-###########################################################
-# BLOCK FOR INTERACTION WITH DATABASE IN BUSINESS CONTEXT #
-###########################################################
-
 
 class PackageDAL:
     """Data Access Layer for operating user info"""
@@ -35,8 +31,7 @@ class PackageDAL:
         query = select(TypesPackage)
         res = await self.db_session.execute(query)
         types = res.scalars().all()
-        if types is not None:
-            return types
+        return types
 
     async def get_parcels_by_ids(
         self,
@@ -64,8 +59,7 @@ class PackageDAL:
         query = query.offset(offset).limit(2)
         res = await self.db_session.execute(query)
         parcels = res.scalars().all()
-        if parcels is not None:
-            return parcels
+        return parcels
 
     async def get_package_by_id(
         self, package_id: UUID
@@ -77,8 +71,7 @@ class PackageDAL:
         )
         res = await self.db_session.execute(query)
         package_row = res.fetchone()
-        if package_row is not None:
-            return package_row[0]
+        return package_row[0]
 
 
 class PackageDALSync:
@@ -91,10 +84,9 @@ class PackageDALSync:
         parcels = res.scalars().all()
         if parcels is not None:
             for package in parcels:
-                # Стоимость = (вес в кг * 0.5 + стоимость содержимого в долларах * 0.01 ) * курс доллара к рублю
                 price_delivery = (
                     package.weight * 0.5 + package.price * 0.01
                 ) * float(exchange_rate)
                 package.price_delivery = round(price_delivery, 2)
 
-            return parcels
+        return parcels

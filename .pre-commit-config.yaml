@@ -1,7 +1,7 @@
 repos:
   # Ruff - линтер и форматтер
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.6.9 # укажи последнюю стабильную версию
+    rev: v0.13.2
     hooks:
       - id: ruff
         args: [--fix]
@@ -12,7 +12,11 @@ repos:
     rev: v1.11.2
     hooks:
       - id: mypy
-        additional_dependencies: ["pydantic", "fastapi"]
+        additional_dependencies:
+          - "pydantic"
+          - "fastapi"
+          - "types-requests"
+          - "types-redis"
 
   # Проверка на лишние пробелы и порядок файлов
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -23,9 +27,23 @@ repos:
       - id: check-yaml
       - id: check-toml
       - id: check-added-large-files
+      - id: check-merge-conflict  # проверка на конфликты слияния
+      - id: check-docstring-first  # docstring должен быть первым
+      - id: debug-statements  # проверка на забытые breakpoint/pdb
+      - id: name-tests-test  # проверка имен тестовых файлов
+        args: [--pytest-test-first]
 
-  Опционально: Black (если хочешь поверх ruff)
-  - repo: https://github.com/psf/black
-    rev: 24.8.0
+  # Проверка безопасности
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.10
     hooks:
-      - id: black
+      - id: bandit
+        args: ["-c", "pyproject.toml"]
+        additional_dependencies: ["bandit[toml]"]
+
+  # Проверка приватных ключей
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
