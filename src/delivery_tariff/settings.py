@@ -6,11 +6,6 @@ class Settings(BaseSettings):
     port: int
 
     database_url: str
-    database_host: str
-    database_port: int
-    database_name: str
-    database_user: str
-    database_password: str
 
     broker_celery_url: str
     backend_celery_url: str

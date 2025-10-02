@@ -21,6 +21,8 @@ services:
     ports:
       - "8000:8000"
     environment:
+      - HOST=0.0.0.0
+      - PORT=8000
       - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/delivery_tariff_db
       - BROKER_CELERY_URL=redis://redis:6379/1
       - BACKEND_CELERY_URL=redis://redis:6379/1
@@ -35,6 +37,8 @@ services:
     build: .
     command: celery -A delivery_tariff.celery_app worker --loglevel=info
     environment:
+      - HOST=0.0.0.0
+      - PORT=8000
       - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/delivery_tariff_db
       - BROKER_CELERY_URL=redis://redis:6379/1
       - BACKEND_CELERY_URL=redis://redis:6379/1
@@ -49,6 +53,8 @@ services:
     build: .
     command: celery -A delivery_tariff.celery_app beat --loglevel=info
     environment:
+      - HOST=0.0.0.0
+      - PORT=8000
       - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/delivery_tariff_db
       - BROKER_CELERY_URL=redis://redis:6379/1
       - BACKEND_CELERY_URL=redis://redis:6379/1
