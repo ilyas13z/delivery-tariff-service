@@ -1,30 +1,49 @@
-.PHONY: run migrate celery worker help
+.PHONY: help run stop clean test test-build test-run test-clean logs test-logs
 
 help:
 	@echo "Доступные команды:"
-	@echo "  make run      - Запустить веб-сервер"
-	@echo "  make celery   - Запустить Celery worker"
-	@echo "  make migrate  - Применить миграции"
-	@echo "  make migration MSG='message' - Создать новую миграцию"
-	@echo "  make install  - Установить зависимости"
+	@echo "  make run          - Запустить приложение"
+	@echo "  make stop         - Остановить приложение"
+	@echo "  make clean        - Удалить все контейнеры и volumes"
+	@echo "  make logs         - Показать логи приложения"
+	@echo "  make test         - Запустить тесты (build + run)"
+	@echo "  make test-build   - Собрать тестовый образ"
+	@echo "  make test-run     - Запустить тесты"
+	@echo "  make test-clean   - Очистить тестовые контейнеры"
+	@echo "  make test-logs    - Показать логи тестов"
 
-install:
-	poetry install
-
+# Основное приложение
 run:
-	PYTHONPATH=src poetry run python -m delivery_tariff.main
+	docker compose up -d --build
 
-celery:
-	PYTHONPATH=src poetry run celery -A delivery_tariff.celery_app worker --loglevel=info
+stop:
+	docker compose down
 
-beat:
-	PYTHONPATH=src poetry run celery -A delivery_tariff.celery_app beat --loglevel=info
+clean:
+	docker compose down -v
+	docker system prune -f
 
-migrate:
-	poetry run alembic upgrade head
+logs:
+	docker compose logs -f
 
-migration:
-	poetry run alembic revision --autogenerate -m "$(MSG)"
+# Тесты
+test: test-build test-run
 
-test:
-	PYTHONPATH=src poetry run pytest tests/
+test-build:
+	docker compose -f docker-compose.test.yml build
+
+test-run:
+	docker compose -f docker-compose.test.yml up --abort-on-container-exit --exit-code-from pytest
+
+test-clean:
+	docker compose -f docker-compose.test.yml down -v
+
+test-logs:
+	docker compose -f docker-compose.test.yml logs -f pytest
+
+# Комбинированные команды
+test-full: test-clean test
+
+restart: stop run
+
+restart-test: test-clean test
