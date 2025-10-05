@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     port: int
 
     database_url: str
+    test_database_url: str
 
     broker_celery_url: str
     backend_celery_url: str

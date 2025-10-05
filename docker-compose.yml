@@ -10,6 +10,15 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  postgres_test:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: delivery_tariff_db_test
+      POSTGRES_USER: postgres_test
+      POSTGRES_PASSWORD: postgres_test # pragma: allowlist secret
+    ports:
+      - "5434:5432"
+
   redis:
     image: redis:7-alpine
     ports:

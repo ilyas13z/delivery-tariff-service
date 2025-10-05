@@ -6,11 +6,6 @@ help:
 	@echo "  make stop         - Остановить приложение"
 	@echo "  make clean        - Удалить все контейнеры и volumes"
 	@echo "  make logs         - Показать логи приложения"
-	@echo "  make test         - Запустить тесты (build + run)"
-	@echo "  make test-build   - Собрать тестовый образ"
-	@echo "  make test-run     - Запустить тесты"
-	@echo "  make test-clean   - Очистить тестовые контейнеры"
-	@echo "  make test-logs    - Показать логи тестов"
 
 # Основное приложение
 run:
@@ -26,24 +21,10 @@ clean:
 logs:
 	docker compose logs -f
 
-# Тесты
-test: test-build test-run
+test-migration:
+	PYTHONPATH=.. poetry run alembic init migrations
+	PYTHONPATH=.. poetry run alembic revision --autogenerate -m "test running migrations"
+	PYTHONPATH=.. poetry run alembic upgrade heads
 
-test-build:
-	docker compose -f docker-compose.test.yml build
-
-test-run:
-	docker compose -f docker-compose.test.yml up --abort-on-container-exit --exit-code-from pytest
-
-test-clean:
-	docker compose -f docker-compose.test.yml down -v
-
-test-logs:
-	docker compose -f docker-compose.test.yml logs -f pytest
-
-# Комбинированные команды
-test-full: test-clean test
-
-restart: stop run
-
-restart-test: test-clean test
+test:
+	PYTHONPATH=../src pytest -v
