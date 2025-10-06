@@ -42,7 +42,10 @@ Shipinkos — это онлайн-сервис, который автомати�
 │   │   └── settings.py             # Настройки приложения
 │   └── __init__.py
 └── tests
-    └── __init__.py
+    ├── alembic.ini
+    ├── conftest.py
+    ├── __init__.py
+    └── test_handlers.py
 ```
 
 ## API Endpoints
@@ -182,6 +185,25 @@ make run
 ```bash
 PYTHONPATH=src poetry run python -m delivery_tariff.main
 ```
+
+## Запуск тестов
+
+Для запуска тестов выполните следующие шаги:
+
+1. Перейдите в папку `tests/`:
+   ```bash
+   cd tests/
+   ```
+
+2. Выполните миграции для тестовой базы данных:
+   ```bash
+   make test-migration
+   ```
+
+3. Запустите тесты:
+   ```bash
+   make test
+   ```
 
 ## Примеры использования
 
