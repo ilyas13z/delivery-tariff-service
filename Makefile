@@ -22,7 +22,6 @@ logs:
 	docker compose logs -f
 
 test-migration:
-	PYTHONPATH=.. poetry run alembic init migrations
 	PYTHONPATH=.. poetry run alembic revision --autogenerate -m "test running migrations"
 	PYTHONPATH=.. poetry run alembic upgrade heads
 

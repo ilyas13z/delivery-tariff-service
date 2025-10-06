@@ -45,6 +45,7 @@ Shipinkos — это онлайн-сервис, который автомати�
     ├── alembic.ini
     ├── conftest.py
     ├── __init__.py
+    ├── migrations
     └── test_handlers.py
 ```
 

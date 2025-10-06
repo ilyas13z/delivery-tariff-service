@@ -7,7 +7,6 @@ from starlette.testclient import TestClient
 import src.delivery_tariff.settings as settings
 from src.delivery_tariff.main import app
 
-# import os
 import asyncio
 from src.delivery_tariff.db.session import get_async_db
 import asyncpg
@@ -15,12 +14,10 @@ import asyncpg
 
 settings = settings.Settings()
 
-# create async engine for interaction with database
 test_engine = create_async_engine(
     settings.test_database_url, future=True, echo=True
 )
 
-# create session for the interaction with database
 test_async_session = sessionmaker(
     test_engine, expire_on_commit=False, class_=AsyncSession
 )
@@ -31,13 +28,6 @@ def event_loop():
     loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
     loop.close()
-
-
-# @pytest.fixture(scope="session", autouse=True)
-# async def run_migrations():
-#     os.system("alembic init migrations")
-#     os.system('alembic revision --autogenerate -m "test running migrations"')
-#     os.system("alembic upgrade heads")
 
 
 @pytest.fixture(scope="function")
